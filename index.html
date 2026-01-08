@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="cat1.png">
+    <link rel="apple-touch-icon" href="cat1.png">  
     <script>
         tailwind.config = {
             theme: {
@@ -68,12 +69,19 @@
     <!-- ==================== View 1: 大廳 (Lobby) ==================== -->
     <div id="view-lobby" class="flex-1 flex flex-col max-w-md mx-auto w-full hidden">
         <div class="relative w-full h-[58vh] overflow-hidden group bg-white shadow-xl z-0" id="banner-carousel">
+            
             <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-100">
                 <img src="mahjong_bg.png" onerror="this.src='https://images.unsplash.com/photo-1595759604118-a08822588c27?q=80&w=1000&auto=format&fit=crop'" class="w-full h-full object-cover transform transition duration-1000">
             </div>
+
             <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-0">
                 <img src="mahjong_bg2.png" onerror="this.src='https://images.unsplash.com/photo-1622396636133-74323dc4d905?q=80&w=1000&auto=format&fit=crop'" class="w-full h-full object-cover transform transition duration-1000">
             </div>
+
+            <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-0">
+                <img src="mahjong_bg3.png" onerror="this.src='https://images.unsplash.com/photo-1583275479278-8cb379dc173e?q=80&w=1000&auto=format&fit=crop'" class="w-full h-full object-cover transform transition duration-1000">
+            </div>
+
             <div class="absolute inset-0 bg-gradient-to-t from-cute-red/80 via-transparent to-transparent flex flex-col justify-end p-8 pb-24 z-10 pointer-events-none">
                 <h1 class="text-5xl font-black text-white drop-shadow-lg mb-1 tracking-wider transform translate-y-2">爭霸</h1>
                 <p class="text-cute-yellow text-sm font-bold flex items-center gap-2 mt-1 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full w-fit transform translate-y-2">
@@ -583,4 +591,5 @@
         init();
     </script>
 </body>
+
 </html>
