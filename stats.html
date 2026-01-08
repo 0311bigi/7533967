@@ -483,7 +483,7 @@
 
                 // --- 每日統計 ---
                 if (!dailyStats[dateStr]) {
-                    dailyStats[dateStr] = { count: 0, scores: {}, bigHands: [], rounds: {} };
+                    dailyStats[dateStr] = { count: 0, scores: {}, bigHands: [], rounds: {}, loans: [] };
                 }
                 
                 // 每個人的分數 (當日總計)
@@ -494,6 +494,10 @@
                 if(!dailyStats[dateStr].rounds[row.round]) dailyStats[dateStr].rounds[row.round] = [];
                 dailyStats[dateStr].rounds[row.round].push({ name: name, score: score });
 
+                if (row.topUp) {
+                dailyStats[dateStr].loans.push(name);
+                }
+				
                 // 收集當日大牌
                 if (row.bigNames) {
                     const hands = String(row.bigNames).split(',').filter(h => h);
@@ -606,6 +610,10 @@
                 if (hasData) {
                     className += ' has-game';
                     content += `<div class="text-[10px] mt-0.5 transform scale-125">🀄</div>`; // 標記有局
+                    if (dailyStats[dateKey].loans && dailyStats[dateKey].loans.length > 0) {
+                            // 右上角顯示一個跳動的小銀行
+                            content += `<div class="absolute top-0 right-0.5 text-[8px] animate-bounce" title="瑞銀增貸">🏦</div>`;
+                    }
                 } else {
                     content += `<div class="h-4"></div>`; // 佔位
                 }
@@ -901,28 +909,89 @@
             btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
             try { await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ type: 'fund', date: date, item: item, amount: amount }) }); document.getElementById('fund-item').value = ''; document.getElementById('fund-amount').value = ''; await fetchData(); } catch (e) { alert('上傳失敗'); } finally { btn.disabled = false; btn.innerHTML = originalText; }
         }
+        // 請替換原本的 renderFundList 函式
         function renderFundList() {
             const list = document.getElementById('fund-list');
-            if(fundRecords.length === 0) { list.innerHTML = `<div class="text-center text-gray-400 py-8 text-xs font-bold">目前無雲端紀錄</div>`; return; }
+            
+            // 若無資料顯示提示
+            if(fundRecords.length === 0) { 
+                list.innerHTML = `<div class="text-center text-gray-400 py-8 text-xs font-bold">目前無雲端紀錄</div>`; 
+                return; 
+            }
+        
+            // 1. 先排序資料 (新 -> 舊)
             const sortedRecords = [...fundRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+            // 2. 按「月份」分組
             const groups = {};
             sortedRecords.forEach(r => {
-                const d = new Date(r.date); let monthKey = "未知";
-                if(!isNaN(d.getTime())) { monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+                const d = new Date(r.date); 
+                let monthKey = "未知";
+                if(!isNaN(d.getTime())) { 
+                    monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; 
+                }
                 if(!groups[monthKey]) { groups[monthKey] = { total: 0, items: [] }; }
-                groups[monthKey].items.push(r); groups[monthKey].total += (parseInt(r.amount) || 0);
+                groups[monthKey].items.push(r); 
+                groups[monthKey].total += (parseInt(r.amount) || 0);
             });
+        
+            // 3. 渲染 HTML
             list.innerHTML = Object.keys(groups).map((monthKey, index) => {
-                const group = groups[monthKey]; const isCurrentMonth = index === 0;
+                const group = groups[monthKey]; 
+                const isCurrentMonth = index === 0;
                 const monthTotalColor = group.total >= 0 ? 'text-cute-red' : 'text-green-600';
                 const sign = group.total > 0 ? '+' : '';
+                
+                // ★ 斑馬紋邏輯：用來記錄上一筆資料的日期
+                let lastDateStr = '';
+                let useAltBg = false; //用來切換顏色
+        
                 const itemsHtml = group.items.map((r, idx) => {
-                    let day = "??"; const d = new Date(r.date);
+                    let day = "??"; 
+                    const d = new Date(r.date);
+                    // 取得完整的日期字串 (YYYY-MM-DD) 用來比對
+                    const currentDateStr = !isNaN(d.getTime()) ? d.toDateString() : (r.date + idx);
+        
                     if(!isNaN(d.getTime())) day = String(d.getDate()).padStart(2, '0');
-                    // 增加淡入動畫
-                    return `<div class="flex justify-between items-center bg-white p-3 border-b border-gray-100 last:border-0 hover:bg-cute-cream transition animate-fade-in" style="animation-delay: ${idx * 0.05}s"><div class="flex items-center gap-3"><div class="text-xs font-black text-cute-red bg-cute-cream w-8 h-8 flex items-center justify-center rounded-lg">${day}日</div><div class="font-bold text-gray-700 text-sm">${r.item}</div></div><div class="font-black ${r.amount >= 0 ? 'text-cute-red' : 'text-green-600'}">${r.amount > 0 ? '+' : ''}${r.amount}</div></div>`;
+                    
+                    // ★ 如果這一筆的日期跟上一筆不一樣，就切換背景開關
+                    if (currentDateStr !== lastDateStr) {
+                        useAltBg = !useAltBg;
+                        lastDateStr = currentDateStr;
+                    }
+                    
+                    // ★ 設定背景色：白色 或 淡粉色 (bg-red-50)
+                    const bgClass = useAltBg ? 'bg-red-50/50' : 'bg-white';
+                    
+                    // 為了讓日期圖示在粉紅背景上清楚一點，圖示背景改為白色 (bg-white)
+                    return `
+                    <div class="flex justify-between items-center ${bgClass} p-3 border-b border-gray-100 last:border-0 hover:brightness-95 transition animate-fade-in" style="animation-delay: ${idx * 0.05}s">
+                        <div class="flex items-center gap-3">
+                            <div class="text-xs font-black text-cute-red bg-white w-8 h-8 flex items-center justify-center rounded-lg shadow-sm border border-red-100">
+                                ${day}日
+                            </div>
+                            <div class="font-bold text-gray-700 text-sm">${r.item}</div>
+                        </div>
+                        <div class="font-black ${r.amount >= 0 ? 'text-cute-red' : 'text-green-600'}">
+                            ${r.amount > 0 ? '+' : ''}${r.amount}
+                        </div>
+                    </div>`;
                 }).join('');
-                return `<details class="group mb-3 border-2 border-gray-100 rounded-2xl bg-white overflow-hidden shadow-sm animate-fade-in" ${isCurrentMonth ? 'open' : ''} style="animation-delay: ${index * 0.1}s"><summary class="flex justify-between items-center p-4 cursor-pointer select-none bg-gray-50 hover:bg-gray-100 transition"><div class="flex items-center gap-2 font-black text-gray-600"><i class="fa-regular fa-calendar-days text-cute-yellow"></i><span>${monthKey}</span></div><div class="font-black text-sm ${monthTotalColor}">小計 ${sign}${group.total}</div></summary><div class="border-t border-gray-100">${itemsHtml}</div></details>`;
+        
+                // 外層的月份摺疊選單
+                return `
+                <details class="group mb-3 border-2 border-gray-100 rounded-2xl bg-white overflow-hidden shadow-sm animate-fade-in" ${isCurrentMonth ? 'open' : ''} style="animation-delay: ${index * 0.1}s">
+                    <summary class="flex justify-between items-center p-4 cursor-pointer select-none bg-gray-50 hover:bg-gray-100 transition sticky top-0 z-10">
+                        <div class="flex items-center gap-2 font-black text-gray-600">
+                            <i class="fa-regular fa-calendar-days text-cute-yellow"></i>
+                            <span>${monthKey}</span>
+                        </div>
+                        <div class="font-black text-sm ${monthTotalColor}">小計 ${sign}${group.total}</div>
+                    </summary>
+                    <div class="border-t border-gray-100">
+                        ${itemsHtml}
+                    </div>
+                </details>`;
             }).join('');
         }
         
@@ -931,5 +1000,4 @@
         fetchData();
     </script>
 </body>
-
 </html>
