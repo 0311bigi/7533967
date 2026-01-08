@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="cat1.png">
+    <link rel="apple-touch-icon" href="cat1.png">    
     <!-- Chart.js 已經移除，改用原生 JS 寫日曆 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🀄</text></svg>">
     <script>
@@ -300,11 +302,23 @@
                     <i class="fa-solid fa-pen-nib text-cute-red"></i> 發布新留言
                 </h3>
                 <div class="space-y-3">
+                <div class="flex flex-col gap-3">
+                    <input type="date" id="msg-date" class="w-full bg-cute-cream border-0 rounded-2xl px-3 py-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition">
+                    
                     <div class="flex gap-2">
-                        <input type="date" id="msg-date" class="w-1/3 bg-cute-cream border-0 rounded-2xl px-3 py-2 text-xs font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition">
-                        <input type="text" id="msg-name" list="player-options" placeholder="你是誰？" class="flex-1 bg-cute-cream border-0 rounded-2xl px-3 py-2 text-xs font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition">
-                        <datalist id="player-options"></datalist>
+                        <input type="text" id="msg-name" placeholder="你是誰？(可手填)" class="flex-1 bg-cute-cream border-0 rounded-2xl px-3 py-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition">
+                        
+                        <div class="relative w-28">
+                            <select id="name-picker" onchange="document.getElementById('msg-name').value=this.value; this.value='';" class="w-full h-full bg-white/50 border-2 border-cute-cream rounded-2xl px-2 py-3 text-xs font-black text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition appearance-none">
+                                <option value="" disabled selected>▼ 選人</option>
+                                </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cute-dark/50 text-xs">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                        </div>
                     </div>
+                </div>
+<textarea id="msg-content" rows="3" placeholder="寫下今日戰況、垃圾話或經典語錄..." class="w-full bg-cute-cream border-0 rounded-2xl px-3 py-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red resize-none transition"></textarea>
                     <textarea id="msg-content" rows="3" placeholder="寫下今日戰況、垃圾話或經典語錄..." class="w-full bg-cute-cream border-0 rounded-2xl px-3 py-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red resize-none transition"></textarea>
                     <button onclick="submitMessage()" class="btn-push w-full bg-cute-red text-white py-3 rounded-2xl font-black shadow-md hover:brightness-110 active:scale-95 transition text-sm">
                         發布留言
@@ -552,9 +566,16 @@
 
         // 渲染玩家名單選項
         function renderPlayerOptions(names) {
-            const datalist = document.getElementById('player-options');
-            if(datalist) {
-                datalist.innerHTML = names.sort().map(n => `<option value="${n}">`).join('');
+            // 綁定對象改為新的快速選單 ID
+            const picker = document.getElementById('name-picker');
+            if(picker) {
+                // 保留預設選項
+                let html = '<option value="" disabled selected>▼ 選人</option>';
+                
+                // 加入玩家名單
+                html += names.sort().map(n => `<option value="${n}">${n}</option>`).join('');
+                
+                picker.innerHTML = html;
             }
         }
 
