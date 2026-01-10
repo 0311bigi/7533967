@@ -431,24 +431,26 @@
             }
         }
     
-        // ★ 最終版日期工具：正確處理 ISO 時差 與 iPhone 相容性
+        // ★ 日期標準化工具
         function normalizeDate(rawInput) {
             if (!rawInput) return null;
             let d;
             const str = String(rawInput);
-    
-            // 判斷邏輯：
-            // 1. 如果是 ISO 格式 (包含 'T'，如 2026-01-09T16:00:00.000Z)，直接交給 new Date() 轉時區
-            // 2. 如果是純日期 (如 2026-01-10)，將 '-' 換成 '/' 以相容 iPhone
             if (str.includes('T')) {
-                d = new Date(str);
+                d = new Date(str); // ISO 格式交給 Date 轉時區
             } else {
-                d = new Date(str.replace(/-/g, '/'));
+                d = new Date(str.replace(/-/g, '/')); // 純文字格式強制換斜線
             }
-            
             if (isNaN(d.getTime())) return null;
-            
-            // 取出「當地時間」的年月日
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${dd}`;
+        }
+    
+        // ★ 強制取得本地今天日期 (YYYY-MM-DD)
+        function getTodayString() {
+            const d = new Date();
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
@@ -471,38 +473,31 @@
             const targetTypes = (configBigTypes.length > 0) ? configBigTypes : ["天胡", "字一色", "清一色"];
             targetTypes.forEach(t => { achievementMap[t] = { count: 0, users: {} }; });
     
-            let lastGameDate = new Date();
-    
-            // 1. 處理最新日期
+            // ★ 修改：顯示更新日期，但日曆初始化為「今天」
             if (data.length > 0) {
                 const lastItem = data[data.length - 1];
                 const stdDate = normalizeDate(lastItem.date); 
                 let dateDisplay = stdDate || "未知";
                 document.getElementById('last-update').innerText = `更新：${dateDisplay}`;
-                
-                if (stdDate) {
-                    const [ly, lm, ld] = stdDate.split('-').map(Number);
-                    lastGameDate = new Date(ly, lm - 1, ld);
-                    currentYear = ly;
-                    currentMonth = lm - 1;
-                }
             } else {
                 document.getElementById('last-update').innerText = "尚無紀錄";
             }
+    
+            // ★ 設定日曆變數為「今天」(不管資料庫最後一筆是哪天)
+            const now = new Date();
+            currentYear = now.getFullYear();
+            currentMonth = now.getMonth();
     
             // 2. 統計主戰績數據
             data.forEach(row => {
                 const name = String(row.name);
                 const score = parseInt(row.score) || 0;
-                
                 const dateStr = normalizeDate(row.date);
                 if (!dateStr) return; 
     
                 const gameKey = `${dateStr}-R${row.round}`;
     
-                if (!dailyStats[dateStr]) {
-                    dailyStats[dateStr] = { count: 0, scores: {}, bigHands: [], rounds: {}, loans: [] };
-                }
+                if (!dailyStats[dateStr]) dailyStats[dateStr] = { count: 0, scores: {}, bigHands: [], rounds: {}, loans: [] };
                 
                 if(!dailyStats[dateStr].scores[name]) dailyStats[dateStr].scores[name] = 0;
                 dailyStats[dateStr].scores[name] += score;
@@ -552,14 +547,12 @@
                 }
             });
     
-            // 3. 處理公基金流水帳 (對應到戰局)
+            // 3. 處理公基金
             if (fundRecords && fundRecords.length > 0) {
                 fundRecords.forEach(r => {
                     const rDateStr = normalizeDate(r.date);
-                    
                     if (rDateStr && dailyStats[rDateStr] && dailyStats[rDateStr].rounds) {
                         const match = String(r.item).match(/第\s*(\d+)\s*醬/);
-                        
                         if (match) {
                             const roundNum = parseInt(match[1]); 
                             if (dailyStats[rDateStr].rounds[roundNum]) {
@@ -580,19 +573,8 @@
     
             renderCalendar();
             
-            // 自動跳轉到最新有資料的那一天
-            if(data.length > 0) {
-                 const y = lastGameDate.getFullYear();
-                 const m = String(lastGameDate.getMonth() + 1).padStart(2, '0');
-                 const d = String(lastGameDate.getDate()).padStart(2, '0');
-                 selectDate(`${y}-${m}-${d}`);
-            } else {
-                 const now = new Date();
-                 const y = now.getFullYear();
-                 const m = String(now.getMonth() + 1).padStart(2, '0');
-                 const d = String(now.getDate()).padStart(2, '0');
-                 selectDate(`${y}-${m}-${d}`);
-            }
+            // ★ 強制選中今天，不管有沒有資料
+            selectDate(getTodayString());
     
             const sortedPlayers = Object.values(players).sort((a, b) => b.total - a.total);
             renderLeaderboard(sortedPlayers);
@@ -668,6 +650,8 @@
             const target = document.getElementById(`day-${dateKey}`);
             
             const [y, m, d] = dateKey.split('-').map(Number);
+            
+            // 如果選中的日期不在當前日曆月份，先切換過去 (例如今天是一號，上個月最後一天還在顯示)
             if(y !== currentYear || (m-1) !== currentMonth) {
                 currentYear = y;
                 currentMonth = m - 1;
@@ -686,7 +670,6 @@
                 emptyPanel.classList.add('hidden');
                 detailPanel.classList.remove('hidden');
     
-                // 修正星期顯示：日期字串先正規化為斜線
                 const weekDay = ['日','一','二','三','四','五','六'][new Date(dateKey.replace(/-/g,'/')).getDay()];
                 document.getElementById('detail-date').innerText = `${m}/${d} (${weekDay})`;
                 document.getElementById('detail-total').innerText = `共 ${stat.count} 局`;
@@ -776,6 +759,7 @@
                     });
                 }
             } else {
+                // 如果今天沒有資料，顯示空面板
                 emptyPanel.classList.remove('hidden');
                 detailPanel.classList.add('hidden');
             }
@@ -798,7 +782,8 @@
                     body: JSON.stringify({ type: 'message', date: date, name: name, message: content })
                 });
                 document.getElementById('msg-content').value = '';
-                document.getElementById('msg-date').valueAsDate = new Date();
+                // 發布完訊息也重置回今天
+                document.getElementById('msg-date').value = getTodayString();
                 await fetchData();
             } catch (e) { alert('發布失敗'); } finally {
                 btn.disabled = false; btn.innerHTML = originalText;
@@ -921,7 +906,7 @@
     
         function openFundModal() {
             document.getElementById('fund-modal').classList.remove('hidden');
-            document.getElementById('fund-date').valueAsDate = new Date();
+            document.getElementById('fund-date').value = getTodayString(); // 使用強制本地時間
             renderFundList(); 
         }
         function closeFundModal() { document.getElementById('fund-modal').classList.add('hidden'); }
@@ -995,8 +980,13 @@
             }).join('');
         }
         
-        document.getElementById('msg-date').valueAsDate = new Date();
-        document.getElementById('fund-date').valueAsDate = new Date();
+        // 初始化設定：強制設為今天
+        const todayStr = getTodayString();
+        const msgInput = document.getElementById('msg-date');
+        const fundInput = document.getElementById('fund-date');
+        if(msgInput) msgInput.value = todayStr;
+        if(fundInput) fundInput.value = todayStr;
+    
         fetchData();
     </script>
 </body>
