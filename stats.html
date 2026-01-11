@@ -311,18 +311,18 @@
                 <div class="flex flex-col gap-3">
                     <input type="date" id="msg-date" class="w-full h-11 bg-cute-cream border-0 rounded-2xl px-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition appearance-none uppercase">
                     
-                    <div class="flex gap-2 h-11 items-stretch">
-                        <input type="text" id="msg-name" placeholder="你是誰？(可手填)" class="flex-1 h-full bg-cute-cream border-0 rounded-2xl px-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition">
-                        
-                        <div class="relative w-24 h-full shrink-0">
-                            <select id="name-picker" onchange="document.getElementById('msg-name').value=this.value; this.value='';" class="w-full h-full bg-white/60 border-2 border-cute-cream rounded-2xl pl-2 pr-6 text-xs font-black text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition appearance-none rounded-none m-0">
-                                <option value="" disabled selected>▼ 選人</option>
-                                </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cute-dark/50 text-xs">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
+                <div class="flex gap-2 h-11 items-stretch">
+                    <input type="text" id="msg-name" placeholder="你是誰？(可手填)" class="flex-1 min-w-0 h-full bg-cute-cream border-0 rounded-2xl px-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition">
+                    
+                    <div class="relative w-24 h-full shrink-0">
+                        <select id="name-picker" onchange="document.getElementById('msg-name').value=this.value; this.value='';" class="w-full h-full bg-white/60 border-2 border-cute-cream rounded-2xl pl-2 pr-6 text-xs font-black text-cute-dark outline-none focus:ring-2 focus:ring-cute-red transition appearance-none m-0">
+                            <option value="" disabled selected>▼ 選人</option>
+                            </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cute-dark/50 text-xs">
+                            <i class="fa-solid fa-chevron-down"></i>
                         </div>
                     </div>
+                </div>
                 </div>
                     <textarea id="msg-content" rows="3" placeholder="寫下今日戰況、垃圾話或經典語錄..." class="w-full bg-cute-cream border-0 rounded-2xl px-3 py-3 text-sm font-bold text-cute-dark outline-none focus:ring-2 focus:ring-cute-red resize-none transition"></textarea>
                     <button onclick="submitMessage()" class="btn-push w-full bg-cute-red text-white py-3 rounded-2xl font-black shadow-md hover:brightness-110 active:scale-95 transition text-sm">
@@ -393,8 +393,27 @@
             { t: "人和", d: "下家會餵牌，上家不盯你，舒服。", i: "🤝" }
         ];
     
+        // 修改後的 loadFortune 函式 (每日固定運勢版)
         function loadFortune() {
-            const f = fortunes[Math.floor(Math.random() * fortunes.length)];
+            const todayStr = new Date().toDateString(); // 取得今天的日期字串 (例如 "Sat Jan 10 2026")
+            const savedFortune = localStorage.getItem('mahjong_fortune'); // 嘗試讀取存檔
+            const savedDate = localStorage.getItem('mahjong_fortune_date'); // 嘗試讀取存檔日期
+        
+            let f;
+        
+            // 判斷：如果有存檔且日期是今天，就用存檔的
+            if (savedFortune && savedDate === todayStr) {
+                f = JSON.parse(savedFortune);
+            } else {
+                // 否則：隨機抽一個新的
+                f = fortunes[Math.floor(Math.random() * fortunes.length)];
+                
+                // 存起來，明天之前都不准變！
+                localStorage.setItem('mahjong_fortune', JSON.stringify(f));
+                localStorage.setItem('mahjong_fortune_date', todayStr);
+            }
+        
+            // 更新畫面
             document.getElementById('fortune-text').innerText = f.t;
             document.getElementById('fortune-desc').innerText = f.d;
             document.getElementById('fortune-icon').innerText = f.i;
@@ -684,6 +703,22 @@
                 }
                 const color = maxScore > 0 ? 'text-cute-red' : 'text-gray-500';
                 document.getElementById('detail-winner').innerHTML = `${winnerName} <span class="${color} ml-1">(${maxScore>0?'+':''}${maxScore})</span>`;
+                
+                // ★ 新增這段：加入結算按鈕
+                const winnerDiv = document.getElementById('detail-winner').parentNode;
+                // 檢查是否已經有按鈕，避免重複添加
+                if (!document.getElementById('btn-open-settle')) {
+                    const settleBtn = document.createElement('button');
+                    settleBtn.id = 'btn-open-settle';
+                    settleBtn.className = "ml-auto bg-cute-green/10 text-cute-green text-xs px-3 py-1.5 rounded-full font-black border border-cute-green/30 hover:bg-cute-green hover:text-white transition flex items-center gap-1";
+                    settleBtn.innerHTML = `<i class="fa-solid fa-money-bill-transfer"></i> 結算`;
+                    // 點擊時觸發結算函式，傳入當天日期
+                    settleBtn.onclick = function() { calculateSettlement(dateKey); };
+                    winnerDiv.appendChild(settleBtn);
+                } else {
+                    // 如果按鈕已存在，更新它的 onclick 事件以對應新日期
+                    document.getElementById('btn-open-settle').onclick = function() { calculateSettlement(dateKey); };
+                }
     
                 // 瑞銀增貸顯示
                 const roundsList = document.getElementById('detail-rounds-list');
@@ -988,6 +1023,200 @@
         if(fundInput) fundInput.value = todayStr;
     
         fetchData();
+        // === 智慧結算功能 V3 (指定付款人版) ===
+        
+        // 用來暫存當次計算的數據，以便在選人後繼續計算
+        let currentSettleSession = null;
+        
+        function calculateSettlement(dateKey) {
+            const stat = dailyStats[dateKey];
+            if (!stat || !stat.scores) return;
+        
+            // 1. 取得該日所有玩家資料
+            let players = [];
+            for (const [name, score] of Object.entries(stat.scores)) {
+                // 0分也要列入，因為他可能負責付錢
+                players.push({ name, score: parseInt(score) });
+            }
+        
+            const listEl = document.getElementById('settle-list');
+            listEl.innerHTML = '';
+            
+            // 2. 計算差額 (公基金總額)
+            const sum = players.reduce((acc, p) => acc + p.score, 0);
+            const gap = Math.abs(sum);
+        
+            // 儲存暫存檔，供下一步使用
+            currentSettleSession = {
+                players: JSON.parse(JSON.stringify(players)), // 深拷貝避免汙染原始資料
+                gap: gap
+            };
+        
+            // 3. 判斷流程
+            if (sum === 0) {
+                // A. 如果帳本身就是平的 (沒差額)，直接算
+                renderFinalSettlement(currentSettleSession.players, 0, null);
+            } else {
+                // B. 如果有差額 (有公基金)，顯示「選人畫面」
+                renderPayerSelection(gap);
+            }
+        
+            // 顯示視窗
+            document.getElementById('settle-modal').classList.remove('hidden');
+        }
+        
+        // 渲染「選擇付款人」的介面
+        function renderPayerSelection(gap) {
+            const listEl = document.getElementById('settle-list');
+            
+            // 標題提示
+            let html = `
+                <div class="text-center mb-4 animate-fade-in">
+                    <div class="text-xs font-bold text-gray-400 mb-1">本場次公基金總額</div>
+                    <div class="text-3xl font-black text-yellow-500 mb-4">$${gap}</div>
+                    <div class="text-sm font-bold text-cute-dark bg-yellow-50 py-2 rounded-xl border border-yellow-200">
+                        👇 請問是誰付現的？
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 animate-fade-in" style="animation-delay: 0.1s">
+            `;
+        
+            // 列出所有玩家按鈕
+            // 依分數排序，通常贏家(分高)或輸家(分低)比較常付錢，方便找
+            currentSettleSession.players.sort((a,b) => b.score - a.score);
+            
+            currentSettleSession.players.forEach(p => {
+                html += `
+                    <button onclick="selectPayer('${p.name}')" class="flex items-center justify-between bg-white border-2 border-gray-100 hover:border-cute-red hover:bg-red-50 p-3 rounded-2xl transition group">
+                        <span class="font-black text-gray-600 group-hover:text-cute-red">${p.name}</span>
+                        <span class="text-xs font-bold text-gray-300 bg-gray-100 px-2 py-0.5 rounded-full">${p.score}</span>
+                    </button>
+                `;
+            });
+        
+            html += `</div>`;
+            
+            // 底部補充說明
+            html += `<div class="mt-4 text-center text-[10px] text-gray-300 font-bold">點選後系統將自動補正差額並計算轉帳路徑</div>`;
+        
+            listEl.innerHTML = html;
+        }
+        
+        // 使用者選了某人付款後
+        function selectPayer(name) {
+            if (!currentSettleSession) return;
+            
+            // 1. 找出該玩家，把公基金(gap)加回他的分數
+            // 原理：他付了現金，所以要把這筆「負債」從帳上消除，變成別人欠他
+            const target = currentSettleSession.players.find(p => p.name === name);
+            if (target) {
+                target.score += currentSettleSession.gap;
+            }
+        
+            // 2. 進入最終結算
+            renderFinalSettlement(currentSettleSession.players, currentSettleSession.gap, name);
+        }
+        
+        // 渲染最終轉帳列表 (Greedy演算法)
+        function renderFinalSettlement(players, gap, payerName) {
+            const listEl = document.getElementById('settle-list');
+            
+            // 分組：欠錢的 (Debtors) vs 收錢的 (Creditors)
+            let debtors = players.filter(p => p.score < 0).sort((a, b) => a.score - b.score);
+            let creditors = players.filter(p => p.score > 0).sort((a, b) => b.score - a.score);
+        
+            let transactions = [];
+            let i = 0, j = 0;
+        
+            while (i < debtors.length && j < creditors.length) {
+                let debtor = debtors[i];
+                let creditor = creditors[j];
+                let amount = Math.min(Math.abs(debtor.score), creditor.score);
+        
+                if (amount > 0) {
+                    transactions.push({ from: debtor.name, to: creditor.name, amount: amount });
+                }
+        
+                debtor.score += amount;
+                creditor.score -= amount;
+        
+                if (Math.abs(debtor.score) < 0.1) i++;
+                if (creditor.score < 0.1) j++;
+            }
+        
+            // 產生 HTML
+            let html = '';
+        
+            // 如果有指定付款人，顯示一個標記
+            if (payerName) {
+                html += `
+                    <div class="flex items-center gap-2 bg-yellow-50 p-3 rounded-xl border border-yellow-200 mb-4 animate-fade-in">
+                        <div class="bg-yellow-400 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div class="flex-1">
+                            <div class="text-[10px] font-bold text-yellow-600 uppercase">已記錄代墊款</div>
+                            <div class="text-sm font-black text-cute-dark">公基金 $${gap} 由 <span class="text-yellow-600 underline decoration-2 underline-offset-2">${payerName}</span> 支付</div>
+                        </div>
+                        <button onclick="calculateSettlement('${currentSettleDataKey}')" class="text-xs text-gray-400 underline p-1">重選</button>
+                    </div>
+                `;
+            }
+        
+            if (transactions.length === 0) {
+                html += `<div class="text-center text-gray-400 font-bold py-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">帳目已平，無需互轉 🎉</div>`;
+            } else {
+                transactions.forEach((t, idx) => {
+                    html += `
+                    <div class="flex items-center justify-between bg-white p-3 rounded-2xl border-2 border-gray-100 mb-2 shadow-sm animate-fade-in" style="animation-delay: ${idx * 0.1}s">
+                        <div class="flex items-center gap-2 flex-1">
+                            <div class="font-black text-gray-600 w-16 text-right truncate text-sm">${t.from}</div>
+                            <div class="text-gray-300 text-xs"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="font-black text-cute-dark w-16 truncate text-sm">${t.to}</div>
+                        </div>
+                        <div class="font-black text-lg text-cute-green flex items-center gap-1">
+                            <span class="text-xs text-gray-400">$</span>${t.amount}
+                        </div>
+                    </div>`;
+                });
+            }
+        
+            listEl.innerHTML = html;
+        }
+        
+        // 補充：為了讓「重選」按鈕能運作，我們需要把 dateKey 存成全域變數
+        let currentSettleDataKey = '';
+        // 修改 calculateSettlement 開頭，把 dateKey 存起來
+        const originalCalc = calculateSettlement;
+        calculateSettlement = function(dateKey) {
+            currentSettleDataKey = dateKey;
+            originalCalc(dateKey);
+        };
+        
+        // 關閉視窗功能保持不變
+        function closeSettleModal() {
+            document.getElementById('settle-modal').classList.add('hidden');
+        }
     </script>
+	<div id="settle-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeSettleModal()"></div>
+    
+    <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl modal-enter p-6 border-4 border-white mx-4">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+            <h3 class="text-xl font-black text-cute-dark flex items-center gap-2">
+                <i class="fa-solid fa-calculator text-cute-green"></i> 帳務結算機
+            </h3>
+            <button onclick="closeSettleModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div id="settle-list" class="space-y-3 mb-6 min-h-[150px]">
+            </div>
+
+        <button onclick="copySettlement()" class="w-full bg-cute-dark text-white py-3 rounded-2xl font-black shadow-lg hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2">
+            <i class="fa-regular fa-copy"></i> 複製轉帳清單
+        </button>
+        <p class="text-center text-[10px] text-gray-400 mt-2 font-bold">※ 請確認總分平衡，系統已自動計算最簡路徑</p>
+    </div>
+	</div>
 </body>
 </html>
