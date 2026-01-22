@@ -2,14 +2,13 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.05, maximum-scale=3.0, user-scalable=yes">
     <title>排行榜</title>
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="cat1.png">
     <link rel="apple-touch-icon" href="cat1.png">    
-    <!-- Chart.js 已經移除，改用原生 JS 寫日曆 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🀄</text></svg>">
     <script>
         tailwind.config = {
@@ -31,6 +30,25 @@
         }
     </script>
     <style>
+        /* 修改 2: 全局字體放大設定 */
+        :root {
+            font-size: 17px; /* 電腦版稍微大一點 */
+        }
+        @media (max-width: 768px) {
+            :root {
+                font-size: 19px; /* 手機版基準字體加大到 19px，所有 rem 單位會跟著變大 */
+            }
+            /* 強制覆蓋 Tailwind 的小字體設定，讓它在手機上清楚可見 */
+            .text-\[10px\] { font-size: 12px !important; }
+            .text-\[9px\] { font-size: 11px !important; }
+            .text-\[8px\] { font-size: 10px !important; }
+            .text-xs { font-size: 0.85rem !important; } /* 約 16px */
+            .text-sm { font-size: 0.95rem !important; } /* 約 18px */
+            
+            /* 加大日曆格子裡的日期數字 */
+            .calendar-day { font-size: 0.9rem !important; }
+        }
+
         body { 
             background-color: #ff8787; 
             background-image: radial-gradient(#ffffff 20%, transparent 20%), radial-gradient(#ffffff 20%, transparent 20%);
@@ -41,6 +59,8 @@
             color: #495057;
             -webkit-tap-highlight-color: transparent;
             overflow-x: hidden;
+            /* 讓字體渲染更清晰 */
+            -webkit-font-smoothing: antialiased;
         }
         .card { 
             background: #ffffff; 
@@ -113,7 +133,6 @@
 </head>
 <body class="pb-24 pt-4 px-4 min-h-screen">
 
-    <!-- 動態背景裝飾 -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div class="bg-floating-icon text-6xl" style="top: 10%; left: -5%; animation-delay: 0s;">🀄</div>
         <div class="bg-floating-icon text-5xl" style="top: 60%; right: -5%; animation-delay: 2s; animation-duration: 10s;">🎲</div>
@@ -122,7 +141,6 @@
         <div class="bg-floating-icon text-4xl" style="top: 5%; right: 30%; animation-delay: 3s;">☁️</div>
     </div>
 
-    <!-- 讀取遮罩 (可愛版) -->
     <div id="loading-overlay" class="fixed inset-0 z-[60] bg-cute-bg/95 backdrop-blur-md flex flex-col items-center justify-center hidden">
         <div class="flex gap-3 mb-6">
             <div class="w-16 h-20 bg-white rounded-2xl border-b-4 border-gray-200 shadow-xl flex items-center justify-center text-4xl animate-bounce" style="animation-delay: 0s;">🐱</div>
@@ -132,7 +150,6 @@
         <h3 class="text-3xl font-black text-white tracking-widest drop-shadow-md">資料同步中</h3>
     </div>
 
-    <!-- 頂部標題 -->
     <div class="flex justify-between items-center mb-6 text-white relative z-10">
         <div>
             <h1 class="text-3xl font-black drop-shadow-md flex items-center gap-2">
@@ -145,10 +162,9 @@
         </a>
     </div>
 
-    <div class="max-w-md mx-auto relative z-20">
+    <div class="max-w-lg mx-auto relative z-20">
         
-        <!-- 分頁按鈕 -->
-    <div class="bg-white/20 p-1.5 rounded-2xl flex mb-6 shadow-inner backdrop-blur-sm border-2 border-white/30">
+        <div class="bg-white/20 p-1.5 rounded-2xl flex mb-6 shadow-inner backdrop-blur-sm border-2 border-white/30">
         <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn active flex-1 py-2.5 rounded-xl text-sm font-black transition whitespace-nowrap px-1 drop-shadow-sm">戰況日曆</button>
         
         <button onclick="switchTab('ranking')" id="btn-ranking" class="tab-btn flex-1 py-2.5 rounded-xl text-sm font-black text-white hover:bg-white/10 transition whitespace-nowrap px-1 drop-shadow-md">風雲榜</button>
@@ -158,10 +174,8 @@
         <button onclick="switchTab('guestbook')" id="btn-guestbook" class="tab-btn flex-1 py-2.5 rounded-xl text-sm font-black text-white hover:bg-white/10 transition whitespace-nowrap px-1 drop-shadow-md">留言</button>
     </div>
 
-        <!-- 1. 總覽 Tab (現在改為日曆版) -->
         <div id="tab-overview" class="space-y-4 animate-fade-in">
             
-            <!-- 今日雀運卡 (新增) -->
             <div id="fortune-card" class="card p-4 bg-gradient-to-r from-cute-red to-orange-400 text-white relative overflow-hidden border-none shadow-lg transform transition hover:scale-[1.02]">
                 <div class="absolute -right-6 -top-6 text-7xl opacity-20 rotate-12 animate-pulse">✨</div>
                 <div class="relative z-10">
@@ -176,7 +190,6 @@
                 </div>
             </div>
 
-            <!-- 數據概況 -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="card p-4 flex flex-col items-center justify-center relative overflow-hidden hover:scale-[1.02] transition">
                     <div class="absolute -right-4 -bottom-4 text-7xl text-gray-50 rotate-12 pointer-events-none z-0">🀄</div>
@@ -191,9 +204,7 @@
                 </div>
             </div>
 
-            <!-- 日曆主體 -->
             <div class="card p-5 hover:shadow-lg transition duration-300">
-                <!-- 日曆控制器 -->
                 <div class="flex justify-between items-center mb-4">
                     <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full bg-gray-100 text-gray-400 hover:bg-cute-red hover:text-white transition flex items-center justify-center font-bold active:scale-90">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -204,7 +215,6 @@
                     </button>
                 </div>
                 
-                <!-- 星期標題 -->
                 <div class="grid grid-cols-7 gap-1 mb-2 text-center">
                     <div class="text-xs font-black text-cute-red">日</div>
                     <div class="text-xs font-black text-gray-400">一</div>
@@ -215,12 +225,9 @@
                     <div class="text-xs font-black text-cute-red">六</div>
                 </div>
 
-                <!-- 日期格子 -->
                 <div id="calendar-body" class="calendar-grid mb-4">
-                    <!-- JS 生成 -->
-                </div>
+                    </div>
 
-                <!-- 當日戰況詳情區 -->
                 <div id="day-detail-panel" class="bg-cute-cream rounded-xl p-4 border-2 border-dashed border-cute-red/30 hidden animate-fade-in">
                     <div class="flex justify-between items-start mb-2 border-b border-black/5 pb-2">
                         <h4 class="font-black text-cute-dark flex items-center gap-2">
@@ -236,13 +243,10 @@
                     </div>
 
                     <div id="detail-hands" class="flex flex-wrap gap-1 mt-2 mb-3">
-                        <!-- 大牌列表 -->
-                    </div>
+                        </div>
 
-                    <!-- 詳細對戰紀錄 (新增) -->
                     <div id="detail-rounds-list" class="space-y-2 mt-2 border-t border-dashed border-red-200 pt-2">
-                        <!-- JS 動態生成 -->
-                    </div>
+                        </div>
                 </div>
                 
                 <div id="day-empty-panel" class="bg-gray-50 rounded-xl p-6 text-center border-2 border-dashed border-gray-200">
@@ -252,9 +256,7 @@
             </div>
         </div>
 
-        <!-- 2. 風雲榜 Tab -->
         <div id="tab-ranking" class="space-y-4 hidden">
-            <!-- 四大天王 -->
             <div class="grid grid-cols-2 gap-3 animate-fade-in">
                 <div class="card p-3 flex flex-col items-center text-center bg-yellow-50 border-cute-yellow transform hover:scale-105 transition">
                     <div class="text-3xl mb-1 animate-bounce" style="animation-duration: 2s;">👑</div>
@@ -296,12 +298,10 @@
             </div>
         </div>
 
-        <!-- 3. 成就 Tab -->
         <div id="tab-achievement" class="space-y-3 hidden">
             <div id="achievement-list" class="grid grid-cols-1 gap-3"></div>
         </div>
 
-        <!-- 4. 留言板 Tab -->
         <div id="tab-guestbook" class="hidden space-y-4">
             <div class="card p-5 border-t-8 border-cute-red animate-fade-in">
                 <h3 class="text-sm font-black text-cute-dark mb-3 uppercase tracking-wider flex items-center gap-2">
@@ -335,7 +335,6 @@
 
     </div>
 
-    <!-- 公基金 Modal -->
     <div id="fund-modal" class="hidden fixed inset-0 z-[70] flex items-end justify-center">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFundModal()"></div>
         <div class="relative bg-cute-cream w-full max-w-sm rounded-t-[2.5rem] shadow-2xl modal-enter p-6 pb-10 border-t-8 border-cute-yellow flex flex-col max-h-[85vh]">
@@ -747,7 +746,7 @@
                 handsContainer.innerHTML = '';
                 if(stat.bigHands.length > 0) {
                     stat.bigHands.forEach(h => {
-                         handsContainer.innerHTML += `<span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold border border-yellow-200 mr-1 mb-1 inline-block">${h.name}:${h.type}</span>`;
+                           handsContainer.innerHTML += `<span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold border border-yellow-200 mr-1 mb-1 inline-block">${h.name}:${h.type}</span>`;
                     });
                 } else {
                     handsContainer.innerHTML = `<span class="text-[10px] text-gray-400">本日無特殊大牌</span>`;
@@ -1196,7 +1195,7 @@
             document.getElementById('settle-modal').classList.add('hidden');
         }
     </script>
-	<div id="settle-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center">
+    <div id="settle-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeSettleModal()"></div>
     
     <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl modal-enter p-6 border-4 border-white mx-4">
@@ -1217,6 +1216,6 @@
         </button>
         <p class="text-center text-[10px] text-gray-400 mt-2 font-bold">※ 請確認總分平衡，系統已自動計算最簡路徑</p>
     </div>
-	</div>
+    </div>
 </body>
 </html>

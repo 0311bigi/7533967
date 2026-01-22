@@ -20,11 +20,11 @@
                     fontFamily: { sans: ['"Zen Maru Gothic"', 'sans-serif'] },
                     colors: { 
                         cute: { 
-                            red: '#ff6b6b',      // 糖果紅
-                            dark: '#c92a2a',     // 深紅字
-                            yellow: '#ffd43b',   // 亮奶黃
-                            cream: '#fff0f3',    // 粉白底
-                            bg: '#ff8787'        // 背景紅
+                            red: '#ff6b6b',       // 糖果紅
+                            dark: '#c92a2a',      // 深紅字
+                            yellow: '#ffd43b',    // 亮奶黃
+                            cream: '#fff0f3',     // 粉白底
+                            bg: '#ff8787'         // 背景紅
                         } 
                     }
                 }
@@ -40,6 +40,7 @@
             color: #495057;
             -webkit-tap-highlight-color: transparent;
             font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 16px; /* 基礎字體加大 */
         }
         .card { 
             background: #ffffff; 
@@ -62,100 +63,120 @@
     <!-- 讀取遮罩 -->
     <div id="loading-overlay" class="fixed inset-0 z-[60] bg-cute-bg/95 backdrop-blur-sm flex flex-col items-center justify-center hidden">
         <div class="flex gap-3 mb-6 animate-bounce">
-            <div class="w-14 h-20 bg-white rounded-xl border-4 border-cute-yellow shadow-xl flex items-center justify-center transform -rotate-6"><span class="text-4xl">🐱</span></div>
-            <div class="w-14 h-20 bg-white rounded-xl border-4 border-cute-yellow shadow-xl flex items-center justify-center transform rotate-6" style="animation-delay: 0.1s;"><span class="text-4xl">🀄</span></div>
-            <div class="w-14 h-20 bg-white rounded-xl border-4 border-cute-yellow shadow-xl flex items-center justify-center transform -rotate-3" style="animation-delay: 0.2s;"><span class="text-4xl">🧧</span></div>
+            <div class="w-16 h-24 bg-white rounded-xl border-4 border-cute-yellow shadow-xl flex items-center justify-center transform -rotate-6"><span class="text-5xl">🐱</span></div>
+            <div class="w-16 h-24 bg-white rounded-xl border-4 border-cute-yellow shadow-xl flex items-center justify-center transform rotate-6" style="animation-delay: 0.1s;"><span class="text-5xl">🀄</span></div>
+            <div class="w-16 h-24 bg-white rounded-xl border-4 border-cute-yellow shadow-xl flex items-center justify-center transform -rotate-3" style="animation-delay: 0.2s;"><span class="text-5xl">🧧</span></div>
         </div>
-        <h3 class="text-3xl font-black text-white tracking-widest drop-shadow-md">資料同步中</h3>
-        <p id="loading-text" class="text-cute-yellow text-sm font-bold mt-2 animate-pulse bg-white/20 px-4 py-1 rounded-full">請稍候...</p>
+        <h3 class="text-4xl font-black text-white tracking-widest drop-shadow-md">資料同步中</h3>
+        <p id="loading-text" class="text-cute-yellow text-base font-bold mt-2 animate-pulse bg-white/20 px-6 py-2 rounded-full">請稍候...</p>
     </div>
 
     <!-- ==================== View 1: 大廳 (Lobby) ==================== -->
     <div id="view-lobby" class="flex-1 flex flex-col max-w-md mx-auto w-full hidden">
         <div class="relative w-full h-[58vh] overflow-hidden group bg-white shadow-xl z-0" id="banner-carousel">
             
+            <!-- Banner 1 -->
             <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-100">
                 <img src="mahjong_bg.png" onerror="this.src='https://images.unsplash.com/photo-1595759604118-a08822588c27?q=80&w=1000&auto=format&fit=crop'" class="w-full h-full object-cover transform transition duration-1000">
             </div>
 
+            <!-- Banner 2 -->
             <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-0">
                 <img src="mahjong_bg2.png" onerror="this.src='https://images.unsplash.com/photo-1622396636133-74323dc4d905?q=80&w=1000&auto=format&fit=crop'" class="w-full h-full object-cover transform transition duration-1000">
             </div>
 
-            <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-0">
-                <img src="mahjong_bg3.png" onerror="this.src='https://images.unsplash.com/photo-1583275479278-8cb379dc173e?q=80&w=1000&auto=format&fit=crop'" class="w-full h-full object-cover transform transition duration-1000">
-            </div>
-
             <div class="absolute inset-0 bg-gradient-to-t from-cute-red/80 via-transparent to-transparent flex flex-col justify-end p-8 pb-24 z-10 pointer-events-none">
-                <h1 class="text-5xl font-black text-white drop-shadow-lg mb-1 tracking-wider transform translate-y-2">手癢</h1>
-                <p class="text-cute-yellow text-sm font-bold flex items-center gap-2 mt-1 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full w-fit transform translate-y-2">
-                    <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span><span>看診中</span>
+                <h1 class="text-6xl font-black text-white drop-shadow-lg mb-2 tracking-wider transform translate-y-2">手癢</h1>
+                <p class="text-cute-yellow text-base font-bold flex items-center gap-2 mt-1 bg-black/20 backdrop-blur-sm px-4 py-1.5 rounded-full w-fit transform translate-y-2">
+                    <span class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span><span>看診中</span>
                 </p>
             </div>
         </div>
         <div class="relative z-10 px-4 -mt-20 pb-8">
-            <div class="card p-5 space-y-4 shadow-2xl border-t-8 border-cute-yellow">
+            <div class="card p-6 space-y-5 shadow-2xl border-t-8 border-cute-yellow">
                 <div class="flex justify-between items-end">
-                    <h3 class="font-black text-cute-dark text-lg"><i class="fa-solid fa-users text-cute-red"></i> 誰要發財？</h3>
-                    <div class="text-xs font-bold text-cute-red/60 bg-cute-cream px-3 py-1.5 rounded-xl border border-cute-red/20">底: <input type="number" id="init-chips" value="1000" class="w-10 text-center bg-transparent outline-none text-cute-red font-black"></div>
+                    <h3 class="font-black text-cute-dark text-xl"><i class="fa-solid fa-users text-cute-red"></i> 誰要發財？</h3>
+                    <div class="text-sm font-bold text-cute-red/60 bg-cute-cream px-4 py-2 rounded-xl border border-cute-red/20">底: <input type="number" id="init-chips" value="1000" class="w-12 text-center bg-transparent outline-none text-cute-red font-black text-lg"></div>
                 </div>
-                <div class="grid grid-cols-4 gap-2" id="lobby-players"></div>
-                <button onclick="addNewPlayer()" class="w-full py-3 rounded-xl border-2 border-dashed border-cute-red/40 text-cute-red font-black bg-cute-cream/30 hover:bg-cute-cream hover:border-cute-red transition flex items-center justify-center gap-2 group active:scale-95 text-sm">
-                    <span class="w-6 h-6 rounded-full bg-cute-red text-white flex items-center justify-center shadow-md group-hover:rotate-90 transition-transform text-xs"><i class="fa-solid fa-plus"></i></span><span>新增夥伴</span>
+                <div class="grid grid-cols-4 gap-3" id="lobby-players"></div>
+                <button onclick="addNewPlayer()" class="w-full py-4 rounded-xl border-2 border-dashed border-cute-red/40 text-cute-red font-black bg-cute-cream/30 hover:bg-cute-cream hover:border-cute-red transition flex items-center justify-center gap-2 group active:scale-95 text-base">
+                    <span class="w-7 h-7 rounded-full bg-cute-red text-white flex items-center justify-center shadow-md group-hover:rotate-90 transition-transform text-sm"><i class="fa-solid fa-plus"></i></span><span>新增夥伴</span>
                 </button>
-                <div class="grid grid-cols-5 gap-3 pt-1">
-                    <button onclick="startGame()" class="col-span-3 btn-push bg-cute-red text-white text-xl font-black py-4 rounded-2xl shadow-lg hover:brightness-110 flex items-center justify-center gap-2 transform transition hover:-translate-y-1"><i class="fa-solid fa-play"></i> 開新局</button>
+                <div class="grid grid-cols-5 gap-3 pt-2">
+                    <button onclick="startGame()" class="col-span-3 btn-push bg-cute-red text-white text-2xl font-black py-5 rounded-2xl shadow-lg hover:brightness-110 flex items-center justify-center gap-2 transform transition hover:-translate-y-1"><i class="fa-solid fa-play"></i> 開新局</button>
                     <!-- 修改：直接連結到 stats.html -->
-                    <a href="stats.html" class="col-span-2 btn-push bg-cute-yellow text-cute-dark text-base font-black py-4 rounded-2xl shadow-md hover:brightness-105 flex items-center justify-center gap-1 no-underline"><i class="fa-solid fa-chart-pie"></i> 排行榜</a>
+                    <a href="stats.html" class="col-span-2 btn-push bg-cute-yellow text-cute-dark text-lg font-black py-5 rounded-2xl shadow-md hover:brightness-105 flex items-center justify-center gap-1 no-underline"><i class="fa-solid fa-chart-pie"></i> 排行榜</a>
                 </div>
             </div>
-            <p class="text-center text-white/60 text-[10px] font-bold tracking-widest mt-4 drop-shadow-sm">🧧 HAPPY NEW YEAR 2026 🧧</p>
+            <p class="text-center text-white/60 text-xs font-bold tracking-widest mt-6 drop-shadow-sm">🧧 HAPPY NEW YEAR 2026 🧧</p>
         </div>
     </div>
 
     <!-- ==================== View 2: 牌局 (Game) ==================== -->
-    <div id="view-game" class="flex-1 flex flex-col hidden pb-24">
-        <div class="bg-cute-red text-white px-4 py-3 shadow-md flex justify-between items-center sticky top-0 z-40">
-            <div class="font-bold text-lg flex items-center gap-2"><span class="bg-white text-cute-red px-3 py-0.5 rounded-full text-sm font-black shadow-sm transform -rotate-1">第 <span id="game-round-display">1</span> 醬</span></div>
-            <button onclick="exitGame()" class="text-xs bg-black/20 px-3 py-1 rounded-full hover:bg-black/30 transition backdrop-blur-sm font-bold"><i class="fa-solid fa-right-from-bracket"></i> 結束</button>
+    <div id="view-game" class="flex-1 flex flex-col hidden pb-28">
+        <div class="bg-cute-red text-white px-5 py-4 shadow-md flex justify-between items-center sticky top-0 z-40">
+            <div class="font-bold text-xl flex items-center gap-2"><span class="bg-white text-cute-red px-4 py-1 rounded-full text-base font-black shadow-sm transform -rotate-1">第 <span id="game-round-display">1</span> 醬</span></div>
+            <button onclick="exitGame()" class="text-sm bg-black/20 px-4 py-2 rounded-full hover:bg-black/30 transition backdrop-blur-sm font-bold"><i class="fa-solid fa-right-from-bracket"></i> 結束</button>
         </div>
         <div class="p-4 max-w-md mx-auto w-full space-y-4">
-            <div id="history-container" class="space-y-2"></div>
+            <div id="history-container" class="space-y-3"></div>
             
-            <div class="card p-4 relative border-4 border-cute-yellow bg-white/90">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="bg-cute-yellow text-cute-dark text-xs font-black px-3 py-1 rounded-full shadow-sm transform rotate-1">正在輸入...</div>
-                    <button onclick="openTopUpModal()" class="bg-green-100 text-green-700 text-xs font-black px-3 py-1.5 rounded-full hover:bg-green-200 transition border border-green-200 flex items-center gap-1 shadow-sm"><i class="fa-solid fa-money-bill-wave"></i> 瑞銀增貸</button>
+            <div class="card p-5 relative border-4 border-cute-yellow bg-white/90">
+                <div class="flex justify-between items-center mb-5">
+                    <div class="bg-cute-yellow text-cute-dark text-sm font-black px-4 py-1.5 rounded-full shadow-sm transform rotate-1">正在輸入...</div>
+                    <button onclick="openTopUpModal()" class="bg-green-100 text-green-700 text-sm font-black px-4 py-2 rounded-full hover:bg-green-200 transition border border-green-200 flex items-center gap-1 shadow-sm"><i class="fa-solid fa-money-bill-wave"></i> 瑞銀增貸</button>
                 </div>
 
-                <div id="current-rows" class="space-y-4"></div>
+                <div id="current-rows" class="space-y-5"></div>
 
-                <hr class="my-5 border-dashed border-cute-red/20">
+                <hr class="my-6 border-dashed border-cute-red/20">
                 <div class="flex items-center justify-between">
-                    <div class="text-sm font-black text-cute-dark"><i class="fa-solid fa-sack-dollar text-cute-yellow text-xl mr-1"></i> 公基金總額</div>
-                    <div class="flex items-center gap-2"><span id="fund-diff" class="text-xs font-bold text-gray-400">變動: 0</span><input type="number" id="current-fund" placeholder="0" class="input-box w-28 h-12 text-2xl shadow-inner" oninput="calculate()"></div>
+                    <div class="text-base font-black text-cute-dark"><i class="fa-solid fa-sack-dollar text-cute-yellow text-2xl mr-2"></i> 公基金總額</div>
+                    <div class="flex items-center gap-2"><span id="fund-diff" class="text-sm font-bold text-gray-400">變動: 0</span><input type="number" id="current-fund" placeholder="0" class="input-box w-32 h-14 text-3xl shadow-inner" oninput="calculate()"></div>
                 </div>
             </div>
             
-            <p class="text-center text-white/50 text-xs mt-4 font-bold"><i class="fa-solid fa-hand-point-up"></i> 點擊名字可換人</p>
+            <p class="text-center text-white/50 text-sm mt-4 font-bold"><i class="fa-solid fa-hand-point-up"></i> 點擊名字可換人</p>
         </div>
-        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
-            <div class="max-w-md mx-auto flex gap-3 items-center">
-                <div id="check-sum" class="flex-1 bg-gray-100 rounded-2xl py-4 px-4 font-black text-center text-gray-400 text-xl transition-colors border-2 border-transparent"><i class="fa-solid fa-scale-balanced mr-1"></i> <span>0</span></div>
-                <button id="submit-btn" onclick="submitRound()" disabled class="btn-push flex-[2] bg-cute-red text-white font-black py-4 rounded-2xl shadow-sm text-xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">上傳本醬 <i class="fa-solid fa-cloud-arrow-up"></i></button>
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+            <div class="max-w-md mx-auto flex gap-4 items-center">
+                <div id="check-sum" class="flex-1 bg-gray-100 rounded-2xl py-4 px-4 font-black text-center text-gray-400 text-2xl transition-colors border-2 border-transparent"><i class="fa-solid fa-scale-balanced mr-1"></i> <span>0</span></div>
+                <button id="submit-btn" onclick="submitRound()" disabled class="btn-push flex-[2] bg-cute-red text-white font-black py-4 rounded-2xl shadow-sm text-2xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">上傳本醬 <i class="fa-solid fa-cloud-arrow-up"></i></button>
             </div>
         </div>
     </div>
 
     <!-- Modals -->
+    <!-- 結束確認 Modal (新增) -->
+    <div id="exit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeExitModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-2xl p-6 border-4 border-cute-red m-4 modal-enter shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-800 mb-4 text-center">⚠️ 結束牌局</h3>
+            <p class="text-gray-600 font-bold text-center mb-6 text-lg">確定要結束目前的牌局嗎？<br><span class="text-cute-red text-sm">(將會清除手機上的暫存紀錄)</span></p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="closeExitModal()" class="btn-push bg-gray-400 text-white font-black py-4 rounded-xl text-lg shadow-lg">取消</button>
+                <button onclick="confirmExit()" class="btn-push bg-cute-red text-white font-black py-4 rounded-xl text-lg shadow-lg">確定結束</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 瑞銀增貸 Modal -->
     <div id="topup-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTopUpModal()"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-t-[2.5rem] p-6 pb-10 border-t-8 border-green-400 modal-enter">
-            <h3 class="text-xl font-black text-gray-800 mb-4 text-center">💸 籌碼不夠了？</h3>
-            <div class="space-y-4">
-                <select id="topup-player" class="w-full bg-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none"></select>
-                <input type="number" id="topup-amount" value="1000" class="w-full bg-gray-100 rounded-2xl px-4 py-3 font-black text-center text-xl outline-none">
-                <button onclick="confirmTopUp()" class="btn-push w-full bg-green-500 text-white font-black py-4 rounded-2xl shadow-lg">確定增資</button>
+        <div class="relative bg-white w-full max-w-sm rounded-t-[2.5rem] p-8 pb-12 border-t-8 border-green-400 modal-enter">
+            <h3 class="text-2xl font-black text-gray-800 mb-6 text-center">💸 資金管理</h3>
+            <div class="space-y-5">
+                <select id="topup-player" class="w-full bg-gray-100 rounded-2xl px-5 py-4 font-bold text-gray-700 outline-none text-xl"></select>
+                <input type="number" id="topup-amount" value="1000" class="w-full bg-gray-100 rounded-2xl px-5 py-4 font-black text-center text-3xl outline-none">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="confirmTopUp(1)" class="btn-push bg-green-500 text-white font-black py-5 rounded-2xl shadow-lg flex items-center justify-center gap-1 text-lg">
+                        <i class="fa-solid fa-plus-circle"></i> 增貸
+                    </button>
+                    <button onclick="confirmTopUp(-1)" class="btn-push bg-blue-400 text-white font-black py-5 rounded-2xl shadow-lg flex items-center justify-center gap-1 text-lg">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> 還款
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -163,15 +184,15 @@
     <!-- 換人 Modal -->
     <div id="sub-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSubModal()"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-t-[2.5rem] p-6 pb-10 border-t-8 border-cute-yellow modal-enter">
-            <h3 class="text-xl font-black text-gray-800 mb-4 text-center">🔄 換人 / 改名</h3>
-            <div class="space-y-5">
-                <div class="text-center bg-gray-50 rounded-xl p-3"><span class="text-xs text-gray-400 block mb-1">目前位置</span><span id="sub-current-player" class="text-2xl font-black text-cute-red">???</span></div>
-                <select id="sub-new-player" class="w-full bg-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none text-lg"></select>
-                <div><label class="text-xs font-bold text-gray-400 pl-2">起始籌碼</label><input type="number" id="sub-base-chips" value="1000" class="w-full bg-gray-100 rounded-2xl px-4 py-3 font-black text-center text-xl outline-none"></div>
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button onclick="confirmSubstitution('reset')" class="btn-push bg-cute-red text-white font-black py-4 rounded-2xl shadow-lg">🔀 換人上桌</button>
-                    <button onclick="confirmSubstitution('keep')" class="btn-push bg-blue-400 text-white font-black py-4 rounded-2xl shadow-lg">✏️ 純粹改名</button>
+        <div class="relative bg-white w-full max-w-sm rounded-t-[2.5rem] p-8 pb-12 border-t-8 border-cute-yellow modal-enter">
+            <h3 class="text-2xl font-black text-gray-800 mb-6 text-center">🔄 換人 / 改名</h3>
+            <div class="space-y-6">
+                <div class="text-center bg-gray-50 rounded-xl p-4"><span class="text-sm text-gray-400 block mb-1">目前位置</span><span id="sub-current-player" class="text-3xl font-black text-cute-red">???</span></div>
+                <select id="sub-new-player" class="w-full bg-gray-100 rounded-2xl px-5 py-4 font-bold text-gray-700 outline-none text-2xl"></select>
+                <div><label class="text-sm font-bold text-gray-400 pl-2">起始籌碼</label><input type="number" id="sub-base-chips" value="1000" class="w-full bg-gray-100 rounded-2xl px-5 py-4 font-black text-center text-3xl outline-none"></div>
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <button onclick="confirmSubstitution('reset')" class="btn-push bg-cute-red text-white font-black py-5 rounded-2xl shadow-lg text-lg">🔀 換人上桌</button>
+                    <button onclick="confirmSubstitution('keep')" class="btn-push bg-blue-400 text-white font-black py-5 rounded-2xl shadow-lg text-lg">✏️ 純粹改名</button>
                 </div>
             </div>
         </div>
@@ -180,13 +201,13 @@
     <!-- 大牌選擇器 -->
     <div id="big-hand-modal" class="hidden fixed inset-0 z-[70] flex items-end justify-center">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeBigHandModal()"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-t-[2.5rem] p-6 pb-10 border-t-8 border-yellow-400 modal-enter flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-black text-gray-800 flex items-center gap-2"><span class="text-2xl">🀄</span> 選擇大牌成就</h3>
-                <span id="big-hand-player-name" class="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-500">Player</span>
+        <div class="relative bg-white w-full max-w-sm rounded-t-[2.5rem] p-6 pb-12 border-t-8 border-yellow-400 modal-enter flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2"><span class="text-3xl">🀄</span> 選擇大牌</h3>
+                <span id="big-hand-player-name" class="bg-gray-100 px-4 py-1.5 rounded-full text-sm font-bold text-gray-500">Player</span>
             </div>
-            <div id="big-types-container" class="grid grid-cols-2 gap-2 overflow-y-auto hide-scrollbar pb-4 flex-1"></div>
-            <button onclick="closeBigHandModal()" class="btn-push w-full bg-yellow-400 text-white font-black py-3 rounded-2xl shadow-lg mt-2">完成選擇</button>
+            <div id="big-types-container" class="grid grid-cols-2 gap-3 overflow-y-auto hide-scrollbar pb-4 flex-1"></div>
+            <button onclick="closeBigHandModal()" class="btn-push w-full bg-yellow-400 text-white font-black py-4 rounded-2xl shadow-lg mt-4 text-xl">完成選擇</button>
         </div>
     </div>
 
@@ -216,7 +237,6 @@
                 if (!gameState.topUps) gameState.topUps = {};
                 if (!gameState.extras) gameState.extras = {};
                 
-                // ★★★ 新增這行：如果是舊的暫存檔，補上今天日期當作預設值，避免出錯
                 if (!gameState.sessionDate) {
                     const d = new Date();
                     gameState.sessionDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -233,7 +253,6 @@
 
         async function fetchConfig() {
             try {
-                // Fetch config only (lightweight if API supports it, otherwise fetches all data but we only use bigTypes)
                 const res = await fetch(API_URL);
                 const json = await res.json();
                 
@@ -291,14 +310,14 @@
                     return `
                         <label class="cursor-pointer relative h-full">
                             <input type="checkbox" class="big-hand-checkbox hidden" value="${type}" ${checked} onchange="toggleBigHand(this)">
-                            <div class="bg-white border-2 border-gray-100 rounded-xl px-2 py-3 text-sm font-bold text-gray-500 text-center transition hover:bg-gray-50 select-none h-full flex items-center justify-center">
+                            <div class="bg-white border-2 border-gray-100 rounded-xl px-2 py-4 text-base font-bold text-gray-500 text-center transition hover:bg-gray-50 select-none h-full flex items-center justify-center">
                                 ${type}
                             </div>
                         </label>
                     `;
                 }).join('');
             } else {
-                container.innerHTML = `<div class="text-xs text-gray-400 col-span-2 text-center">無大牌資料</div>`;
+                container.innerHTML = `<div class="text-sm text-gray-400 col-span-2 text-center">無大牌資料</div>`;
             }
             document.getElementById('big-hand-modal').classList.remove('hidden');
         }
@@ -333,7 +352,10 @@
                 const lastVal = gameState.baseChips[p];
                 const topUpVal = gameState.topUps[p] || 0;
                 const effectiveBase = lastVal + topUpVal;
-                const topUpBadge = topUpVal > 0 ? `<span class="ml-1 text-[10px] text-green-600 bg-green-100 px-1 rounded font-bold">💰+${topUpVal}</span>` : '';
+                // 如果 topUpVal 是 0 (還清了)，就不顯示標籤
+                const topUpBadge = topUpVal !== 0 
+                    ? `<span class="ml-1 text-xs ${topUpVal > 0 ? 'text-green-600 bg-green-100' : 'text-blue-600 bg-blue-100'} px-1.5 py-0.5 rounded font-bold">💰${topUpVal > 0 ? '+' : ''}${topUpVal}</span>` 
+                    : '';
                 
                 const ex = gameState.extras[p] || { penalty: 0, foul: 0, continuance: 0, bigHands: [] };
                 
@@ -343,46 +365,46 @@
                 
                 const bigHandList = ex.bigHands.length > 0 
                     ? `<div class="col-span-4 flex flex-wrap gap-1 mt-1">
-                        ${ex.bigHands.map(h => `<span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-md font-bold shadow-sm">🀄 ${h}</span>`).join('')}
+                        ${ex.bigHands.map(h => `<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-md font-bold shadow-sm">🀄 ${h}</span>`).join('')}
                        </div>` 
                     : '';
 
                 return `
-                <div class="bg-white rounded-2xl p-3 border-2 border-gray-100 shadow-sm transition hover:border-gray-200">
-                    <div class="flex items-center justify-between mb-3">
+                <div class="bg-white rounded-2xl p-4 border-2 border-gray-100 shadow-sm transition hover:border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
                         <div class="flex-1 flex items-center gap-3 overflow-hidden">
-                            <div class="w-12 h-12 rounded-full bg-cute-yellow text-cute-dark flex items-center justify-center font-black text-xl border-4 border-white shadow-sm shrink-0">
+                            <div class="w-14 h-14 rounded-full bg-cute-yellow text-cute-dark flex items-center justify-center font-black text-2xl border-4 border-white shadow-sm shrink-0">
                                 ${p.charAt(0)}
                             </div>
                             <div class="min-w-0">
-                                <div onclick="openSubModal('${p}')" class="font-black text-lg text-cute-dark cursor-pointer hover:text-cute-red transition flex items-center gap-1 truncate">
+                                <div onclick="openSubModal('${p}')" class="font-black text-xl text-cute-dark cursor-pointer hover:text-cute-red transition flex items-center gap-1 truncate">
                                     ${p} 
                                 </div>
                                 <div class="flex items-center gap-1 mt-0.5">
-                                    <span class="text-xs text-cute-dark/50 font-bold">底:${lastVal}</span>
+                                    <span class="text-sm text-cute-dark/50 font-bold">底:${lastVal}</span>
                                     ${topUpBadge}
                                 </div>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 pl-2">
-                            <div class="text-sm font-bold text-gray-400 w-8 text-right score-diff">0</div>
-                            <input type="number" class="chip-input input-box w-20 h-12 text-xl shadow-inner border-2 border-gray-100 focus:border-cute-red" 
+                            <div class="text-base font-bold text-gray-400 w-8 text-right score-diff">0</div>
+                            <input type="number" class="chip-input input-box w-24 h-14 text-2xl shadow-inner border-2 border-gray-100 focus:border-cute-red" 
                                 value="${effectiveBase}" placeholder="${effectiveBase}" oninput="calculate()" onfocus="this.select()">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-4 gap-2">
                         <div class="relative">
-                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">連</span>
-                            <input type="number" value="${ex.continuance || ''}" placeholder="0" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-2 pl-6 pr-1 text-sm font-black text-purple-600 outline-none focus:border-purple-300 text-center" oninput="updateContinuance('${p}', this)">
+                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">連</span>
+                            <input type="number" value="${ex.continuance || ''}" placeholder="0" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-3 pl-7 pr-1 text-base font-black text-purple-600 outline-none focus:border-purple-300 text-center" oninput="updateContinuance('${p}', this)">
                         </div>
-                        <button onclick="cyclePenalty('${p}')" class="w-full py-2 rounded-xl border-2 text-xs font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-1 ${penClass}">
+                        <button onclick="cyclePenalty('${p}')" class="w-full py-3 rounded-xl border-2 text-sm font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-1 ${penClass}">
                             <span>相</span><span>${ex.penalty > 0 ? ex.penalty : ''}</span>
                         </button>
-                        <button onclick="cycleFoul('${p}')" class="w-full py-2 rounded-xl border-2 text-xs font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-1 ${foulClass}">
+                        <button onclick="cycleFoul('${p}')" class="w-full py-3 rounded-xl border-2 text-sm font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-1 ${foulClass}">
                             <span>詐</span><span>${ex.foul > 0 ? ex.foul : ''}</span>
                         </button>
-                        <button onclick="openBigHandModal('${p}')" class="w-full py-2 rounded-xl border-2 text-xs font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-1 ${bigClass}">
+                        <button onclick="openBigHandModal('${p}')" class="w-full py-3 rounded-xl border-2 text-sm font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-1 ${bigClass}">
                             <span>🀄</span><span>${ex.bigHands.length > 0 ? ex.bigHands.length : ''}</span>
                         </button>
                         ${bigHandList}
@@ -408,7 +430,7 @@
             
             gameState.players.forEach((name, idx) => {
                 const base = gameState.baseChips[name];
-                const topUp = gameState.topUps[name] || 0; // 取得該玩家的增貸額
+                const topUp = gameState.topUps[name] || 0;
                 const effectiveBase = base + topUp; 
                 const inputVal = parseInt(rows[idx].value) || 0;
                 const score = inputVal - effectiveBase; 
@@ -419,7 +441,7 @@
                 payload.push({ 
                     name: name, 
                     score: score, 
-                    topUp: topUp, // ★★★ 關鍵修正：這裡原本漏掉了，補上去！ ★★★
+                    topUp: topUp,
                     continuance: e.continuance, 
                     penalty: e.penalty, 
                     foul: e.foul, 
@@ -492,7 +514,7 @@
             container.innerHTML = Array(4).fill(0).map((_, i) => {
                 const currentPlayer = lastPlayers[i] || allPlayers[0];
                 const options = allPlayers.map(p => `<option value="${p}" ${p === currentPlayer ? 'selected' : ''}>${p}</option>`).join('');
-                return `<div class="relative group"><div class="w-full aspect-square bg-cute-cream rounded-2xl border-2 border-cute-red/20 flex flex-col items-center justify-center relative overflow-hidden group-hover:border-cute-red transition shadow-sm active:scale-95"><div class="w-10 h-10 rounded-full bg-cute-red text-white flex items-center justify-center text-lg font-black mb-1 shadow-md border-2 border-white">${currentPlayer.charAt(0)}</div><select onchange="updateLobbyPlayer(this, ${i})" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full text-center">${options}</select><span class="text-xs font-bold text-cute-dark pointer-events-none player-name-display">${currentPlayer}</span><i class="fa-solid fa-caret-down text-[10px] text-cute-red/30 absolute bottom-1"></i></div></div>`;
+                return `<div class="relative group"><div class="w-full aspect-square bg-cute-cream rounded-2xl border-2 border-cute-red/20 flex flex-col items-center justify-center relative overflow-hidden group-hover:border-cute-red transition shadow-sm active:scale-95"><div class="w-12 h-12 rounded-full bg-cute-red text-white flex items-center justify-center text-xl font-black mb-1 shadow-md border-2 border-white">${currentPlayer.charAt(0)}</div><select onchange="updateLobbyPlayer(this, ${i})" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full text-center">${options}</select><span class="text-sm font-bold text-cute-dark pointer-events-none player-name-display">${currentPlayer}</span><i class="fa-solid fa-caret-down text-[10px] text-cute-red/30 absolute bottom-1"></i></div></div>`;
             }).join('');
         }
         function updateLobbyPlayer(select, index) {
@@ -524,7 +546,7 @@
                     totalScoreDiff += diff;
                     
                     diffEl.innerText = diff > 0 ? `+${diff}` : diff;
-                    diffEl.className = `text-sm font-bold w-8 text-right score-diff ${diff > 0 ? 'text-cute-red' : (diff < 0 ? 'text-green-600' : 'text-gray-300')}`;
+                    diffEl.className = `text-base font-bold w-8 text-right score-diff ${diff > 0 ? 'text-cute-red' : (diff < 0 ? 'text-green-600' : 'text-gray-300')}`;
                 });
     
                 // 2. 加入公基金變動
@@ -540,20 +562,18 @@
                     // 平衡時顯示綠色勾勾
                     checkEl.innerHTML = `<i class="fa-solid fa-check text-green-500"></i>`;
                     subBtn.disabled = false; 
-                    subBtn.className = "btn-push flex-[2] bg-cute-red text-white font-black py-4 rounded-2xl shadow-lg transition"; 
+                    subBtn.className = "btn-push flex-[2] bg-cute-red text-white font-black py-4 rounded-2xl shadow-lg transition text-2xl"; 
                 } else {
                     // 不平衡時，顯示中文提示
-                    // 大於0：代表檯面上的錢比原本多 -> 有人多算了
-                    // 小於0：代表檯面上的錢比原本少 -> 有人少算了
                     const msg = totalScoreDiff > 0 
                         ? `有人多算 ${totalScoreDiff}` 
                         : `有人少算 ${Math.abs(totalScoreDiff)}`;
     
                     // 使用 text-base 稍微縮小字體，確保手機能完整顯示
-                    checkEl.innerHTML = `<span class="text-cute-red font-black text-base">${msg}</span>`;
+                    checkEl.innerHTML = `<span class="text-cute-red font-black text-lg">${msg}</span>`;
                     
                     subBtn.disabled = true; 
-                    subBtn.className = "flex-[2] bg-gray-300 text-white font-black py-4 rounded-2xl shadow-sm cursor-not-allowed"; 
+                    subBtn.className = "flex-[2] bg-gray-300 text-white font-black py-4 rounded-2xl shadow-sm cursor-not-allowed text-2xl"; 
                 }
             }
     
@@ -563,7 +583,7 @@
                 container.innerHTML = gameState.history.map(h => {
                     const winner = h.scores.reduce((p, c) => (p.score > c.score) ? p : c);
                     const winnerText = winner.score > 0 ? `${winner.name} +${winner.score}` : '平局';
-                    return `<details class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group"><summary class="flex justify-between items-center p-3 hover:bg-gray-50 transition select-none"><div class="font-bold text-gray-700 text-sm"><span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs mr-2">第 ${h.round} 醬</span><span class="text-cute-red">${winnerText}</span></div><i class="fa-solid fa-chevron-down text-gray-300 group-open:rotate-180 transition-transform"></i></summary><div class="p-3 bg-cute-cream/50 border-t border-gray-100 text-sm grid grid-cols-2 gap-2">${h.scores.map(s => `<div class="flex justify-between"><span class="text-gray-600">${s.name}</span><span class="font-bold ${s.score >= 0 ? 'text-cute-red' : 'text-green-600'}">${s.score > 0 ? '+' : ''}${s.score}</span></div>`).join('')}<div class="flex justify-between border-t border-gray-200 pt-1 mt-1 col-span-2"><span class="text-gray-500">公基金變動</span><span class="font-bold text-cute-yellow">${h.fund > 0 ? '+' : ''}${h.fund}</span></div></div></details>`;
+                    return `<details class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group"><summary class="flex justify-between items-center p-3 hover:bg-gray-50 transition select-none"><div class="font-bold text-gray-700 text-base"><span class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm mr-2">第 ${h.round} 醬</span><span class="text-cute-red">${winnerText}</span></div><i class="fa-solid fa-chevron-down text-gray-300 group-open:rotate-180 transition-transform text-lg"></i></summary><div class="p-4 bg-cute-cream/50 border-t border-gray-100 text-base grid grid-cols-2 gap-2">${h.scores.map(s => `<div class="flex justify-between"><span class="text-gray-600">${s.name}</span><span class="font-bold ${s.score >= 0 ? 'text-cute-red' : 'text-green-600'}">${s.score > 0 ? '+' : ''}${s.score}</span></div>`).join('')}<div class="flex justify-between border-t border-gray-200 pt-2 mt-1 col-span-2"><span class="text-gray-500">公基金變動</span><span class="font-bold text-cute-yellow">${h.fund > 0 ? '+' : ''}${h.fund}</span></div></div></details>`;
                 }).reverse().join('');
             }
 
@@ -576,11 +596,16 @@
             document.getElementById('topup-modal').classList.remove('hidden');
         }
         function closeTopUpModal() { document.getElementById('topup-modal').classList.add('hidden'); }
-        function confirmTopUp() {
+        
+        // 修改：confirmTopUp 支援增資(1) 與 還款(-1)
+        function confirmTopUp(multiplier) {
             const p = document.getElementById('topup-player').value;
             const amt = parseInt(document.getElementById('topup-amount').value) || 0;
             if(!gameState.topUps[p]) gameState.topUps[p] = 0;
-            gameState.topUps[p] += amt;
+            
+            // 乘上 multiplier (1 或 -1)
+            gameState.topUps[p] += (amt * multiplier);
+            
             saveState(); renderGameView(); closeTopUpModal();
         }
         
@@ -619,7 +644,6 @@
             if (new Set(pList).size !== 4) { alert("玩家不能重複喔！"); return; }
             const initChips = parseInt(document.getElementById('init-chips').value) || 1000;
             
-            // ★★★ 新增這段：計算並鎖定「開局日期」 ★★★
             const d = new Date();
             const sessionDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
@@ -629,7 +653,7 @@
             gameState.baseChips = {}; 
             gameState.topUps = {}; 
             gameState.extras = {}; 
-            gameState.sessionDate = sessionDate; // ★★★ 把日期存起來！
+            gameState.sessionDate = sessionDate; 
             
             pList.forEach(p => gameState.baseChips[p] = initChips);
             gameState.baseFund = 0; 
@@ -640,11 +664,22 @@
             renderGameView();
         }
 
+        // 修改：使用 Modal 來處理結束確認，避免 confirm() 被阻擋
         function exitGame() { 
-            if(confirm('確定要結束目前的牌局嗎？\n(將會清除目前的手機紀錄回到大廳)')) { 
-                localStorage.removeItem('mj_game_state'); 
-                location.reload(); 
-            } 
+            document.getElementById('exit-modal').classList.remove('hidden');
+        }
+
+        function closeExitModal() {
+             document.getElementById('exit-modal').classList.add('hidden');
+        }
+
+        function confirmExit() {
+            localStorage.removeItem('mj_game_state'); 
+            closeExitModal();
+            // 重置遊戲狀態
+            gameState = { active: false, round: 1, baseChips: {}, baseFund: 0, history: [], topUps: {}, extras: {} };
+            // 重新初始化
+            init(); 
         }
 
         init();
