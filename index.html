@@ -212,13 +212,11 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxWOtO6F00m_OAu0zc1hzQn4F2BieA1ZXAF7Bv_8i5L5KfeN9kV07C_6JFH9DuJ_M4/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxWOtO6F00m_OAu0zc1hzQn4F2BieA1ZXAF7Bv_8i5L5KfeN9kV07C_6JFH9DuJ_M4/exec';
 
-    // --- 新增：定義獨立的存檔 Key ---
-        // 取得當前網址路徑並移除非英數字元，確保不同資料夾的網頁有不同的存檔前綴
+        // --- 新增：定義獨立的存檔 Key ---
         const PATH_PREFIX = window.location.pathname.replace(/[^a-zA-Z0-9]/g, '_');
         
-        // 定義存檔名稱 (加上前綴後，每個資料夾的存檔就會分開了)
         const KEY_GAME_STATE = `${PATH_PREFIX}_mj_game_state`;
         const KEY_ALL_PLAYERS = `${PATH_PREFIX}_mj_all_players`;
         const KEY_LAST_PLAYERS = `${PATH_PREFIX}_mj_last_players`;
@@ -229,14 +227,14 @@
         let allPlayers = [...DEFAULT_PLAYERS]; 
         let configBigTypes = ["天胡","八仙過海","字一色","七搶一", "Migi", "大四喜", "小四喜", "清一色", "混一色", "大三元", "小三元", "碰碰胡", "五暗刻", "四暗刻"]; 
     
-        let gameState = { active: false, round: 1, baseChips: {}, baseFund: 0, history: [], topUps: {}, extras: {} };
+        // 加入 offlineChips 與 tempInputs 狀態
+        let gameState = { active: false, round: 1, baseChips: {}, baseFund: 0, history: [], topUps: {}, extras: {}, offlineChips: {}, tempInputs: {} };
         
         let editingPlayerName = null; 
         let currentBigHandPlayer = null; 
     
         // --- Init ---
         async function init() {
-            // 修改：使用變數 KEY_GAME_STATE 等等
             const savedState = localStorage.getItem(KEY_GAME_STATE);
             const savedPlayers = localStorage.getItem(KEY_ALL_PLAYERS);
             const savedBigTypes = localStorage.getItem(KEY_BIG_TYPES);
@@ -248,6 +246,8 @@
                 gameState = JSON.parse(savedState);
                 if (!gameState.topUps) gameState.topUps = {};
                 if (!gameState.extras) gameState.extras = {};
+                if (!gameState.offlineChips) gameState.offlineChips = {};
+                if (!gameState.tempInputs) gameState.tempInputs = {};
                 
                 if (!gameState.sessionDate) {
                     const d = new Date();
@@ -271,11 +271,22 @@
                 if (json.status === 'success') {
                     if (json.bigTypes && Array.isArray(json.bigTypes)) {
                         configBigTypes = json.bigTypes;
-                        // 修改：使用變數
                         localStorage.setItem(KEY_BIG_TYPES, JSON.stringify(configBigTypes));
                     }
                 }
             } catch(e) { console.log("Fetch config failed, using cache"); }
+        }
+
+        // --- 核心修正：同步輸入框暫存數值 ---
+        function syncInputs() {
+            if (!gameState.tempInputs) gameState.tempInputs = {};
+            const inputs = document.querySelectorAll('.chip-input');
+            inputs.forEach((input, idx) => {
+                const name = gameState.players[idx];
+                gameState.tempInputs[name] = input.value;
+            });
+            const fundInput = document.getElementById('current-fund');
+            if (fundInput) gameState.tempFund = fundInput.value;
         }
 
         // --- Game Logic ---
@@ -286,6 +297,7 @@
         }
 
         function cyclePenalty(player) {
+            syncInputs(); // 觸發前儲存輸入
             ensureExtras(player);
             let val = gameState.extras[player].penalty;
             val = (val + 1) > 2 ? 0 : val + 1; 
@@ -294,6 +306,7 @@
         }
 
         function cycleFoul(player) {
+            syncInputs(); // 觸發前儲存輸入
             ensureExtras(player);
             let val = gameState.extras[player].foul;
             val = (val + 1) > 1 ? 0 : val + 1; 
@@ -336,6 +349,7 @@
         }
 
         function toggleBigHand(checkbox) {
+            syncInputs(); // 觸發前儲存輸入
             if(!currentBigHandPlayer) return;
             const val = checkbox.value;
             let hands = gameState.extras[currentBigHandPlayer].bigHands;
@@ -365,7 +379,10 @@
                 const lastVal = gameState.baseChips[p];
                 const topUpVal = gameState.topUps[p] || 0;
                 const effectiveBase = lastVal + topUpVal;
-                // 如果 topUpVal 是 0 (還清了)，就不顯示標籤
+                
+                // 核心修正：優先抓取使用者的暫存輸入
+                const tempVal = (gameState.tempInputs && gameState.tempInputs[p] !== undefined) ? gameState.tempInputs[p] : effectiveBase;
+
                 const topUpBadge = topUpVal !== 0 
                     ? `<span class="ml-1 text-xs ${topUpVal > 0 ? 'text-green-600 bg-green-100' : 'text-blue-600 bg-blue-100'} px-1.5 py-0.5 rounded font-bold">💰${topUpVal > 0 ? '+' : ''}${topUpVal}</span>` 
                     : '';
@@ -402,7 +419,7 @@
                         <div class="flex items-center gap-2 pl-2">
                             <div class="text-base font-bold text-gray-400 w-8 text-right score-diff">0</div>
                             <input type="number" class="chip-input input-box w-24 h-14 text-2xl shadow-inner border-2 border-gray-100 focus:border-cute-red" 
-                                value="${effectiveBase}" placeholder="${effectiveBase}" oninput="calculate()" onfocus="this.select()">
+                                value="${tempVal}" placeholder="${effectiveBase}" oninput="calculate()" onfocus="this.select()">
                         </div>
                     </div>
 
@@ -425,7 +442,9 @@
                 </div>`;
             }).join('');
             
-            document.getElementById('current-fund').value = gameState.baseFund;
+            // 復原公基金暫存
+            const tf = (gameState.tempFund !== undefined) ? gameState.tempFund : gameState.baseFund;
+            document.getElementById('current-fund').value = tf;
             calculate();
         }
 
@@ -478,8 +497,13 @@
                 gameState.round += 1;
                 gameState.baseChips = nextBaseChips;
                 gameState.baseFund = currentFund;
-                gameState.topUps = {}; // 清空增貸紀錄
+                gameState.topUps = {}; 
                 gameState.extras = {}; 
+
+                // 上傳成功，清空畫面的暫存
+                gameState.tempInputs = {};
+                gameState.tempFund = undefined;
+
                 saveState();
                 renderGameView();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -540,69 +564,60 @@
         }
 
         // --- Core Helpers ---
-    function calculate() {
-                const inputs = document.querySelectorAll('.chip-input');
-                let totalScoreDiff = 0;
-    
-                // 1. 計算每個人的輸贏
-                inputs.forEach((input, idx) => {
-                    const name = gameState.players[idx];
-                    const base = gameState.baseChips[name];
-                    const topUp = gameState.topUps[name] || 0;
-                    const effectiveBase = base + topUp;
-                    const val = parseInt(input.value);
-                    const diffEl = input.previousElementSibling;
-                    
-                    if (isNaN(val)) { diffEl.innerText = "..."; return; }
-                    
-                    const diff = val - effectiveBase;
-                    totalScoreDiff += diff;
-                    
-                    diffEl.innerText = diff > 0 ? `+${diff}` : diff;
-                    diffEl.className = `text-base font-bold w-8 text-right score-diff ${diff > 0 ? 'text-cute-red' : (diff < 0 ? 'text-green-600' : 'text-gray-300')}`;
-                });
-    
-                // 2. 加入公基金變動
-                const fVal = parseInt(document.getElementById('current-fund').value) || 0;
-                totalScoreDiff += (fVal - gameState.baseFund);
-                document.getElementById('fund-diff').innerText = `變動: ${(fVal - gameState.baseFund)}`;
-    
-                // 3. 顯示結果 (修改這邊)
-                const checkEl = document.getElementById('check-sum');
-                const subBtn = document.getElementById('submit-btn');
-    
-                if (totalScoreDiff === 0) {
-                    // 平衡時顯示綠色勾勾
-                    checkEl.innerHTML = `<i class="fa-solid fa-check text-green-500"></i>`;
-                    subBtn.disabled = false; 
-                    subBtn.className = "btn-push flex-[2] bg-cute-red text-white font-black py-4 rounded-2xl shadow-lg transition text-2xl"; 
-                } else {
-                    // 不平衡時，顯示中文提示
-                    const msg = totalScoreDiff > 0 
-                        ? `有人多算 ${totalScoreDiff}` 
-                        : `有人少算 ${Math.abs(totalScoreDiff)}`;
-    
-                    // 使用 text-base 稍微縮小字體，確保手機能完整顯示
-                    checkEl.innerHTML = `<span class="text-cute-red font-black text-lg">${msg}</span>`;
-                    
-                    subBtn.disabled = true; 
-                    subBtn.className = "flex-[2] bg-gray-300 text-white font-black py-4 rounded-2xl shadow-sm cursor-not-allowed text-2xl"; 
-                }
+        function calculate() {
+            const inputs = document.querySelectorAll('.chip-input');
+            let totalScoreDiff = 0;
+
+            inputs.forEach((input, idx) => {
+                const name = gameState.players[idx];
+                const base = gameState.baseChips[name];
+                const topUp = gameState.topUps[name] || 0;
+                const effectiveBase = base + topUp;
+                const val = parseInt(input.value);
+                const diffEl = input.previousElementSibling;
+                
+                if (isNaN(val)) { diffEl.innerText = "..."; return; }
+                
+                const diff = val - effectiveBase;
+                totalScoreDiff += diff;
+                
+                diffEl.innerText = diff > 0 ? `+${diff}` : diff;
+                diffEl.className = `text-base font-bold w-8 text-right score-diff ${diff > 0 ? 'text-cute-red' : (diff < 0 ? 'text-green-600' : 'text-gray-300')}`;
+            });
+
+            const fVal = parseInt(document.getElementById('current-fund').value) || 0;
+            totalScoreDiff += (fVal - gameState.baseFund);
+            document.getElementById('fund-diff').innerText = `變動: ${(fVal - gameState.baseFund)}`;
+
+            const checkEl = document.getElementById('check-sum');
+            const subBtn = document.getElementById('submit-btn');
+
+            if (totalScoreDiff === 0) {
+                checkEl.innerHTML = `<i class="fa-solid fa-check text-green-500"></i>`;
+                subBtn.disabled = false; 
+                subBtn.className = "btn-push flex-[2] bg-cute-red text-white font-black py-4 rounded-2xl shadow-lg transition text-2xl"; 
+            } else {
+                const msg = totalScoreDiff > 0 
+                    ? `有人多算 ${totalScoreDiff}` 
+                    : `有人少算 ${Math.abs(totalScoreDiff)}`;
+                checkEl.innerHTML = `<span class="text-cute-red font-black text-lg">${msg}</span>`;
+                subBtn.disabled = true; 
+                subBtn.className = "flex-[2] bg-gray-300 text-white font-black py-4 rounded-2xl shadow-sm cursor-not-allowed text-2xl"; 
             }
-    
-            function renderHistory() {
-                const container = document.getElementById('history-container');
-                if (gameState.history.length === 0) { container.innerHTML = ''; return; }
-                container.innerHTML = gameState.history.map(h => {
-                    const winner = h.scores.reduce((p, c) => (p.score > c.score) ? p : c);
-                    const winnerText = winner.score > 0 ? `${winner.name} +${winner.score}` : '平局';
-                    return `<details class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group"><summary class="flex justify-between items-center p-3 hover:bg-gray-50 transition select-none"><div class="font-bold text-gray-700 text-base"><span class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm mr-2">第 ${h.round} 醬</span><span class="text-cute-red">${winnerText}</span></div><i class="fa-solid fa-chevron-down text-gray-300 group-open:rotate-180 transition-transform text-lg"></i></summary><div class="p-4 bg-cute-cream/50 border-t border-gray-100 text-base grid grid-cols-2 gap-2">${h.scores.map(s => `<div class="flex justify-between"><span class="text-gray-600">${s.name}</span><span class="font-bold ${s.score >= 0 ? 'text-cute-red' : 'text-green-600'}">${s.score > 0 ? '+' : ''}${s.score}</span></div>`).join('')}<div class="flex justify-between border-t border-gray-200 pt-2 mt-1 col-span-2"><span class="text-gray-500">公基金變動</span><span class="font-bold text-cute-yellow">${h.fund > 0 ? '+' : ''}${h.fund}</span></div></div></details>`;
-                }).reverse().join('');
-            }
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-container');
+            if (gameState.history.length === 0) { container.innerHTML = ''; return; }
+            container.innerHTML = gameState.history.map(h => {
+                const winner = h.scores.reduce((p, c) => (p.score > c.score) ? p : c);
+                const winnerText = winner.score > 0 ? `${winner.name} +${winner.score}` : '平局';
+                return `<details class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group"><summary class="flex justify-between items-center p-3 hover:bg-gray-50 transition select-none"><div class="font-bold text-gray-700 text-base"><span class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm mr-2">第 ${h.round} 醬</span><span class="text-cute-red">${winnerText}</span></div><i class="fa-solid fa-chevron-down text-gray-300 group-open:rotate-180 transition-transform text-lg"></i></summary><div class="p-4 bg-cute-cream/50 border-t border-gray-100 text-base grid grid-cols-2 gap-2">${h.scores.map(s => `<div class="flex justify-between"><span class="text-gray-600">${s.name}</span><span class="font-bold ${s.score >= 0 ? 'text-cute-red' : 'text-green-600'}">${s.score > 0 ? '+' : ''}${s.score}</span></div>`).join('')}<div class="flex justify-between border-t border-gray-200 pt-2 mt-1 col-span-2"><span class="text-gray-500">公基金變動</span><span class="font-bold text-cute-yellow">${h.fund > 0 ? '+' : ''}${h.fund}</span></div></div></details>`;
+            }).reverse().join('');
+        }
 
         function saveState() { localStorage.setItem(KEY_GAME_STATE, JSON.stringify(gameState)); }
         
-        // --- Modals Logic (TopUp, Sub, Exit) ---
         function openTopUpModal() {
             const s = document.getElementById('topup-player');
             s.innerHTML = gameState.players.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -610,13 +625,12 @@
         }
         function closeTopUpModal() { document.getElementById('topup-modal').classList.add('hidden'); }
         
-        // 修改：confirmTopUp 支援增資(1) 與 還款(-1)
         function confirmTopUp(multiplier) {
+            syncInputs(); // 觸發前儲存輸入
             const p = document.getElementById('topup-player').value;
             const amt = parseInt(document.getElementById('topup-amount').value) || 0;
             if(!gameState.topUps[p]) gameState.topUps[p] = 0;
             
-            // 乘上 multiplier (1 或 -1)
             gameState.topUps[p] += (amt * multiplier);
             
             saveState(); renderGameView(); closeTopUpModal();
@@ -630,22 +644,54 @@
             const sel = document.getElementById('sub-new-player');
             sel.innerHTML = opts.map(x => `<option value="${x}">${x}</option>`).join('');
             if(!opts.includes(p)) sel.innerHTML += `<option value="${p}" selected>${p}</option>`;
+            
+            // 核心修正：監聽選擇改變，自動帶入該玩家先前的金額
+            sel.onchange = function() {
+                const selected = this.value;
+                const chipInput = document.getElementById('sub-base-chips');
+                if (gameState.offlineChips && gameState.offlineChips[selected] !== undefined) {
+                    chipInput.value = gameState.offlineChips[selected];
+                } else {
+                    chipInput.value = 1000;
+                }
+            };
+            sel.onchange(); // 手動觸發一次初始化
+
             document.getElementById('sub-modal').classList.remove('hidden');
         }
         function closeSubModal() { document.getElementById('sub-modal').classList.add('hidden'); }
+        
         function confirmSubstitution(mode) {
+            syncInputs(); // 換人前先儲存目前桌面上的輸入
             const oldN = editingPlayerName;
             const newN = document.getElementById('sub-new-player').value;
             const chips = parseInt(document.getElementById('sub-base-chips').value) || 1000;
             const idx = gameState.players.indexOf(oldN);
-            gameState.players[idx] = newN;
+
+            gameState.offlineChips = gameState.offlineChips || {};
+
             if(mode === 'reset') {
-                delete gameState.baseChips[oldN]; gameState.baseChips[newN] = chips;
-                delete gameState.topUps[oldN]; delete gameState.extras[oldN];
+                // 核心修正：將舊玩家目前的「底+增貸」存入離線金庫
+                gameState.offlineChips[oldN] = (gameState.baseChips[oldN] || 0) + (gameState.topUps[oldN] || 0);
+
+                gameState.players[idx] = newN;
+                gameState.baseChips[newN] = chips;
+
+                delete gameState.baseChips[oldN]; 
+                delete gameState.topUps[oldN]; 
+                delete gameState.extras[oldN];
+                if(gameState.tempInputs) delete gameState.tempInputs[oldN];
+
+                // 強制讓新上桌的人馬上顯示新的起始籌碼
+                if(!gameState.tempInputs) gameState.tempInputs = {};
+                gameState.tempInputs[newN] = chips;
             } else {
-                gameState.baseChips[newN] = gameState.baseChips[oldN]; delete gameState.baseChips[oldN];
+                gameState.players[idx] = newN;
+                gameState.baseChips[newN] = gameState.baseChips[oldN];
+                delete gameState.baseChips[oldN];
                 if(gameState.topUps[oldN]) { gameState.topUps[newN] = gameState.topUps[oldN]; delete gameState.topUps[oldN]; }
                 if(gameState.extras[oldN]) { gameState.extras[newN] = gameState.extras[oldN]; delete gameState.extras[oldN]; }
+                if(gameState.tempInputs && gameState.tempInputs[oldN]) { gameState.tempInputs[newN] = gameState.tempInputs[oldN]; delete gameState.tempInputs[oldN]; }
             }
             localStorage.setItem(KEY_LAST_PLAYERS, JSON.stringify(gameState.players));
             saveState(); renderGameView(); closeSubModal();
@@ -668,6 +714,11 @@
             gameState.extras = {}; 
             gameState.sessionDate = sessionDate; 
             
+            // 開新局時清空所有暫存跟離線紀錄
+            gameState.offlineChips = {}; 
+            gameState.tempInputs = {};
+            gameState.tempFund = undefined;
+            
             pList.forEach(p => gameState.baseChips[p] = initChips);
             gameState.baseFund = 0; 
             gameState.history = [];
@@ -677,7 +728,6 @@
             renderGameView();
         }
 
-        // 修改：使用 Modal 來處理結束確認，避免 confirm() 被阻擋
         function exitGame() { 
             document.getElementById('exit-modal').classList.remove('hidden');
         }
@@ -689,9 +739,7 @@
         function confirmExit() {
             localStorage.removeItem(KEY_GAME_STATE); 
             closeExitModal();
-            // 重置遊戲狀態
-            gameState = { active: false, round: 1, baseChips: {}, baseFund: 0, history: [], topUps: {}, extras: {} };
-            // 重新初始化
+            gameState = { active: false, round: 1, baseChips: {}, baseFund: 0, history: [], topUps: {}, extras: {}, offlineChips: {}, tempInputs: {} };
             init(); 
         }
 
